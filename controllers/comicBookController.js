@@ -98,10 +98,48 @@ exports.updateBook = async (req, res) => {
 		if (!comicBook) {
 			return res.status(404).json({ message: "Comic book not found" });
 		}
+		// validate the request body fields as sequelize does not throw validation errors on update
+		// manaully check price, yearOfPublication and numberOfPages fields as they are numbers
+		const { yearOfPublication, price, numberOfPages } = req.body;
+		if (yearOfPublication && isNaN(yearOfPublication)) {
+			return res
+				.status(400)
+				.json({ message: "Year of publication must be a number" });
+		}
+		if (price && isNaN(price)) {
+			return res.status(400).json({ message: "Price must be a number" });
+		}
+		if (numberOfPages && isNaN(numberOfPages)) {
+			return res
+				.status(400)
+				.json({ message: "Number of pages must be a number" });
+		}
 
 		const updatedComicBook = await comicBook.update(req.body);
 
 		return res.status(200).json(updatedComicBook);
+	} catch (err) {
+		// handle validation errors
+		if (err.name == "SequelizeValidationError") {
+			return res.status(400).json({ message: err.errors[0].message });
+		}
+		console.log(err);
+		return res.status(500).json({ message: "Internal server error" });
+	}
+};
+
+exports.deleteBook = async (req, res) => {
+	try {
+		const { id } = req.params;
+		if (!id || isNaN(id)) {
+			return res.status(400).json({ message: "Please provide a valid id" });
+		}
+		const comicBook = await ComicBook.findByPk(id);
+		if (!comicBook) {
+			return res.status(404).json({ message: "Comic book not found" });
+		}
+		await comicBook.destroy();
+		return res.status(204).json();
 	} catch (err) {
 		console.log(err);
 		return res.status(500).json({ message: "Internal server error" });

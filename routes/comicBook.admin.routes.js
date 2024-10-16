@@ -9,6 +9,7 @@ router.post("/", comicBookController.createBook);
 // update a specific comic book by id
 router.put("/:id", comicBookController.updateBook);
 
-// delete a specific comic book by id
+// delete a specific comic book by did
+router.delete("/:id", comicBookController.deleteBook);
 
 module.exports = router;
