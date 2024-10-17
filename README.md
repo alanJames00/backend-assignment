@@ -1,5 +1,17 @@
 # Comic Book Store API - Documentation
 
+## Deployed Base URL
+
+```
+    https://mng-api.alanj.live
+```
+
+## Live Postman Collection
+
+```
+    https://www.postman.com/solar-crescent-923203/workspace/mango-jelly
+```
+
 ## Admin Routes
 
 ### Create A Comic Book
