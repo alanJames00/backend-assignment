@@ -117,7 +117,7 @@ exports.updateBook = async (req, res) => {
 				err: errorMessages.validation.invalidId.message,
 			});
 		}
-		const comicBook = await ComicBook.findByPk(id);
+		const comicBook = await ComicBook.findByPk(parseInt(id));
 
 		if (!comicBook) {
 			return res.status(errorMessages.notFound.status).json({
@@ -157,7 +157,7 @@ exports.deleteBook = async (req, res) => {
 			});
 		}
 
-		const comicBook = await ComicBook.findByPk(id);
+		const comicBook = await ComicBook.findByPk(parseInt(id));
 		if (!comicBook) {
 			return res.status(errorMessages.notFound.status).json({
 				err: errorMessages.notFound.message,
