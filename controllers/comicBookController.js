@@ -1,7 +1,10 @@
 const { ComicBook } = require("../models/index");
 const errorMessages = require("../utils/errorMessages");
 const customErrors = require("../errors/customError");
-const { validateComicBook } = require("../utils/validationUtils");
+const {
+	validateComicBook,
+	validateComicBookUpdate,
+} = require("../utils/validationUtils");
 
 // create new comic book
 exports.createBook = async (req, res) => {
@@ -123,34 +126,19 @@ exports.updateBook = async (req, res) => {
 		}
 
 		// validate the request body fields as sequelize does not throw validation errors on update
-		// manaully check price, yearOfPublication and numberOfPages fields as they are numbers
-		const { yearOfPublication, price, numberOfPages } = req.body;
-		if (yearOfPublication && isNaN(yearOfPublication)) {
-			return res
-				.status(errorMessages.validation.yearOfPublication.status)
-				.json({
-					err: errorMessages.validation.yearOfPublication.message,
-				});
-		}
-		if (price && isNaN(price)) {
-			return res.status(errorMessages.validation.price.status).json({
-				err: errorMessages.validation.price.message,
-			});
-		}
-		if (numberOfPages && isNaN(numberOfPages)) {
-			return res.status(errorMessages.validation.numberOfPages.status).json({
-				err: errorMessages.validation.numberOfPages.message,
-			});
-		}
+		validateComicBookUpdate(req.body);
 
 		const updatedComicBook = await comicBook.update(req.body);
 
 		return res.status(200).json(updatedComicBook);
 	} catch (err) {
 		// handle validation errors
-		if (err.name == "SequelizeValidationError") {
-			return res.status(400).json({ message: err.errors[0].message });
+		if (err instanceof customErrors.ValidationError) {
+			return res.status(err.statusCode).json({
+				err: err.message,
+			});
 		}
+
 		console.log(err);
 		return res.status(errorMessages.internalServerError.status).json({
 			err: errorMessages.internalServerError.message,

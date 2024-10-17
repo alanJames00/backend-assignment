@@ -5,6 +5,7 @@ const errorMessages = require("../utils/errorMessages");
 const conditionEnum = ["new", "used"];
 
 module.exports = {
+	// validate new comic book
 	validateComicBook: (comicBook) => {
 		// check if bookName exists
 		if (!comicBook.bookName) {
@@ -80,6 +81,60 @@ module.exports = {
 				throw new ValidationError(
 					errorMessages.validation.numberOfPages.message,
 					errorMessages.validation.numberOfPages.status,
+				);
+			}
+		}
+	},
+
+	// validate book update
+	// check if a field exists and if it exists, its according to the schema
+	validateComicBookUpdate: (comicBook) => {
+		// validate yearOfPublication if it exists
+		if (comicBook.yearOfPublication) {
+			if (!Number.isInteger(comicBook.yearOfPublication)) {
+				throw new ValidationError(
+					errorMessages.validation.yearOfPublication.message,
+					errorMessages.validation.yearOfPublication.status,
+				);
+			}
+		}
+
+		// validate price if it exists
+		if (comicBook.price) {
+			if (isNaN(comicBook.price)) {
+				throw new ValidationError(
+					errorMessages.validation.price.message,
+					errorMessages.validation.price.status,
+				);
+			}
+		}
+
+		// validate discount if it exists
+		if (comicBook.discount) {
+			if (isNaN(comicBook.discount)) {
+				throw new ValidationError(
+					errorMessages.validation.discount.message,
+					errorMessages.validation.discount.status,
+				);
+			}
+		}
+
+		// validate numberOfPages if it exists
+		if (comicBook.numberOfPages) {
+			if (!Number.isInteger(comicBook.numberOfPages)) {
+				throw new ValidationError(
+					errorMessages.validation.numberOfPages.message,
+					errorMessages.validation.numberOfPages.status,
+				);
+			}
+		}
+
+		// validate condition if it exists
+		if (comicBook.condition) {
+			if (!conditionEnum.includes(comicBook.condition)) {
+				throw new ValidationError(
+					errorMessages.validation.condition.message,
+					errorMessages.validation.condition.status,
 				);
 			}
 		}
