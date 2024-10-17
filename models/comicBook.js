@@ -1,7 +1,7 @@
 // comic book model definition
 
 module.exports = (sequelize, DataTypes) => {
-	const ComicBook = sequelize.define("ComicBook", {
+	const ComicBook = sequelize.define("Books", {
 		bookName: {
 			type: DataTypes.STRING,
 			allowNull: false,
@@ -18,11 +18,15 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.FLOAT,
 			allowNull: false,
 		},
+		discount: {
+			type: DataTypes.FLOAT,
+			allowNull: true,
+		},
 		numberOfPages: {
 			type: DataTypes.INTEGER,
 		},
 		condition: {
-			type: DataTypes.STRING,
+			type: DataTypes.ENUM("new", "used"),
 			allowNull: false,
 		},
 		description: {
