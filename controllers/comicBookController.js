@@ -1,16 +1,26 @@
 const { ComicBook } = require("../models/index");
+const errorMessages = require("../utils/errorMessages");
+const customErrors = require("../errors/customError");
+const { validateComicBook } = require("../utils/validationUtils");
 
 // create new comic book
 exports.createBook = async (req, res) => {
 	try {
+		// validate the request body
+		validateComicBook(req.body);
 		const comicBook = await ComicBook.create(req.body);
 		return res.status(201).json(comicBook);
 	} catch (err) {
 		// handle validation errors
-		if (err.name == "SequelizeValidationError") {
-			return res.status(400).json({ message: err.errors[0].message });
+		if (err instanceof customErrors.ValidationError) {
+			return res.status(err.statusCode).json({
+				err: err.message,
+			});
 		}
-		return res.status(500).json({ message: "Internal server error" });
+
+		return res
+			.status(errorMessages.internalServerError.status)
+			.json({ err: errorMessages.internalServerError.message });
 	}
 };
 
@@ -32,6 +42,7 @@ exports.getBooks = async (req, res) => {
 			offset: (parseInt(page) - 1) * parseInt(limit),
 		};
 
+		// calculate sorting values
 		const sortingOpts = {
 			order: [[sortBy, order.toUpperCase()]],
 		};
@@ -64,24 +75,32 @@ exports.getBooks = async (req, res) => {
 		});
 	} catch (err) {
 		console.log(err);
-		return res.status(500).json({ message: "Internal server error" });
+		return res.status(errorMessages.internalServerError.status).json({
+			err: errorMessages.internalServerError.message,
+		});
 	}
 };
 
 exports.getBookById = async (req, res) => {
 	try {
 		const { id } = req.params;
-		if (!id) {
-			return res.status(400).json({ message: "Please provide a valid id" });
+		if (!id || isNaN(id)) {
+			return res.status(errorMessages.validation.invalidId.status).json({
+				err: errorMessages.validation.invalidId.message,
+			});
 		}
 		const comicBook = await ComicBook.findByPk(id);
 		if (!comicBook) {
-			return res.status(404).json({ message: "Comic book not found" });
+			return res.status(errorMessages.notFound.status).json({
+				err: errorMessages.notFound.message,
+			});
 		}
 		return res.status(200).json(comicBook);
 	} catch (err) {
 		console.log(err);
-		return res.status(500).json({ message: "Internal server error" });
+		return res.status(errorMessages.internalServerError.status).json({
+			err: errorMessages.internalServerError.message,
+		});
 	}
 };
 
@@ -91,28 +110,37 @@ exports.updateBook = async (req, res) => {
 
 		// validate inputs
 		if (!id || isNaN(id)) {
-			return res.status(400).json({ message: "Please provide a valid id" });
+			return res.status(errorMessages.validation.invalidId.status).json({
+				err: errorMessages.validation.invalidId.message,
+			});
 		}
 		const comicBook = await ComicBook.findByPk(id);
 
 		if (!comicBook) {
-			return res.status(404).json({ message: "Comic book not found" });
+			return res.status(errorMessages.notFound.status).json({
+				err: errorMessages.notFound.message,
+			});
 		}
+
 		// validate the request body fields as sequelize does not throw validation errors on update
 		// manaully check price, yearOfPublication and numberOfPages fields as they are numbers
 		const { yearOfPublication, price, numberOfPages } = req.body;
 		if (yearOfPublication && isNaN(yearOfPublication)) {
 			return res
-				.status(400)
-				.json({ message: "Year of publication must be a number" });
+				.status(errorMessages.validation.yearOfPublication.status)
+				.json({
+					err: errorMessages.validation.yearOfPublication.message,
+				});
 		}
 		if (price && isNaN(price)) {
-			return res.status(400).json({ message: "Price must be a number" });
+			return res.status(errorMessages.validation.price.status).json({
+				err: errorMessages.validation.price.message,
+			});
 		}
 		if (numberOfPages && isNaN(numberOfPages)) {
-			return res
-				.status(400)
-				.json({ message: "Number of pages must be a number" });
+			return res.status(errorMessages.validation.numberOfPages.status).json({
+				err: errorMessages.validation.numberOfPages.message,
+			});
 		}
 
 		const updatedComicBook = await comicBook.update(req.body);
@@ -124,24 +152,35 @@ exports.updateBook = async (req, res) => {
 			return res.status(400).json({ message: err.errors[0].message });
 		}
 		console.log(err);
-		return res.status(500).json({ message: "Internal server error" });
+		return res.status(errorMessages.internalServerError.status).json({
+			err: errorMessages.internalServerError.message,
+		});
 	}
 };
 
 exports.deleteBook = async (req, res) => {
 	try {
 		const { id } = req.params;
+
+		// validate inputs
 		if (!id || isNaN(id)) {
-			return res.status(400).json({ message: "Please provide a valid id" });
+			return res.status(errorMessages.validation.invalidId.status).json({
+				err: errorMessages.validation.invalidId.message,
+			});
 		}
+
 		const comicBook = await ComicBook.findByPk(id);
 		if (!comicBook) {
-			return res.status(404).json({ message: "Comic book not found" });
+			return res.status(errorMessages.notFound.status).json({
+				err: errorMessages.notFound.message,
+			});
 		}
 		await comicBook.destroy();
 		return res.status(204).json();
 	} catch (err) {
 		console.log(err);
-		return res.status(500).json({ message: "Internal server error" });
+		return res.status(errorMessages.internalServerError.status).json({
+			err: errorMessages.internalServerError.message,
+		});
 	}
 };
